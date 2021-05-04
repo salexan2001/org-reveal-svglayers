@@ -24,4 +24,6 @@ for l in $(inkscape --query-all $FN 2>/dev/null | grep layer | awk -F ',' '{prin
     n=$(echo "$n+1" | bc)
 done
 
+inkscape -C -o $DN/merged.pdf $FN 2>/dev/null
+
 

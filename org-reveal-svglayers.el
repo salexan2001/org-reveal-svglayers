@@ -3,6 +3,8 @@
 ;; Each layer will become an entry in an reveal.js r-stack.
 ;; A. Schlemmer, 04/2021
 
+;; org-export-current-backend
+
 (defconst script-path (file-name-directory (or load-file-name buffer-file-name)))
 
 (defun revealrstack (filename-relative size regen extension)
@@ -18,19 +20,27 @@
    EXTENSION: Can be \"png\" or \"svg\". The chosen format will be used as the embedded image. Use PNG for more reliable cross-browser compatibility and SVG for a better resolution.
 "
   (let ((filename (expand-file-name filename-relative)))
-    (if (or (string-equal regen "true") (not (file-directory-p filename)))
+    (if (string-equal org-export-current-backend "reveal")
         (progn
-          (message "Layers are extracted...")
-          (shell-command (concat script-path "split_slide.sh " filename ".svg"))))
-    
-    (concat "#+REVEAL_HTML: <div class=\"r-stack\">\n"
-            (mapconcat #'identity
-                       (seq-map (lambda (a)
-                                  (concat "#+ATTR_HTML: :width "
-                                          size " :class fragment\n[["
-                                          filename-relative "/" a "]]\n"))
-                                (directory-files
-                                 filename nil
-                                 (concat "layer.*\\." extension))) "")
-            "#+REVEAL_HTML: </div>")))
+        (message "reveal-export")
+        (if (or (string-equal regen "true") (not (file-directory-p filename)))
+            (progn
+              (message "Layers are extracted...")
+              (shell-command (concat script-path "split_slide.sh " filename ".svg"))))
+      
+      (concat "#+REVEAL_HTML: <div class=\"r-stack\">\n"
+              (mapconcat #'identity
+                         (seq-map (lambda (a)
+                                    (concat "#+ATTR_HTML: :width "
+                                            size " :class fragment\n[["
+                                            filename-relative "/" a "]]\n"))
+                                  (directory-files
+                                   filename nil
+                                   (concat "layer.*\\." extension))) "")
+              "#+REVEAL_HTML: </div>"))
+      ;; for all other (than reveal) formats:
+      (progn
+        (message "other-export")
+        (concat "[[" filename-relative "/merged.pdf]]"))
+      )))
 
