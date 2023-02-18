@@ -21,6 +21,7 @@ for l in $(inkscape --query-all $FN 2>/dev/null | grep layer | awk -F ',' '{prin
     zn=$(printf %03d $n)
     inkscape -C -j -i $l -o $DN/layer$zn.svg $FN 2>/dev/null
     inkscape -C -j -i $l -o $DN/layer$zn.png $FN 2>/dev/null
+    inkscape -C -j -i $l -o $DN/layer$zn.pdf $FN 2>/dev/null
     n=$(echo "$n+1" | bc)
 done
 

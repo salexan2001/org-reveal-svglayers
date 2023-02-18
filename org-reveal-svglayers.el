@@ -7,6 +7,13 @@
 
 (defconst script-path (file-name-directory (or load-file-name buffer-file-name)))
 
+(defun split-slides-with-script (filename regen)
+  (if (or (string-equal regen "true") (not (file-directory-p filename)))
+            (progn
+              (message "Layers are extracted...")
+              (shell-command (concat script-path "split_slide.sh " filename ".svg"))))
+  )
+
 (defun revealrstack (filename-relative size regen extension)
   "This function implements support for layered svg-slides.
    inkscape is used to extract the individual layers from an svg-file.
@@ -22,25 +29,39 @@
   (let ((filename (expand-file-name filename-relative)))
     (if (string-equal org-export-current-backend "reveal")
         (progn
-        (message "reveal-export")
-        (if (or (string-equal regen "true") (not (file-directory-p filename)))
-            (progn
-              (message "Layers are extracted...")
-              (shell-command (concat script-path "split_slide.sh " filename ".svg"))))
+        ;; (message "reveal-export")
+        (split-slides-with-script filename regen)
       
-      (concat "#+REVEAL_HTML: <div class=\"r-stack\">\n"
-              (mapconcat #'identity
-                         (seq-map (lambda (a)
-                                    (concat "#+ATTR_HTML: :width "
-                                            size " :class fragment\n[["
-                                            filename-relative "/" a "]]\n"))
-                                  (directory-files
-                                   filename nil
-                                   (concat "layer.*\\." extension))) "")
-              "#+REVEAL_HTML: </div>"))
+        (concat "#+REVEAL_HTML: <div class=\"r-stack\">\n"
+                (mapconcat #'identity
+                           (seq-map (lambda (a)
+                                      (concat "#+ATTR_HTML: :width "
+                                              size " :class fragment\n[["
+                                              filename-relative "/" a "]]\n"))
+                                    (directory-files
+                                     filename nil
+                                     (concat "layer.*\\." extension)))
+                           "")
+                "#+REVEAL_HTML: </div>"))
       ;; for all other (than reveal) formats:
       (progn
-        (message "other-export")
-        (concat "[[" filename-relative "/merged.pdf]]"))
+        ;; (message "other-export")
+        (split-slides-with-script filename regen)
+        
+        ;; Only the merged version for handouts:
+        ;; (concat "[[" filename-relative "/merged.pdf]]")
+
+        ;; The overlay version:
+        (mapconcat #'identity
+                         (seq-map (lambda (a) 
+                                    (concat "#+BEAMER: \\begin{textblock*}{\\linewidth}(1cm,1.2cm) "
+                                            "\\includegraphics<+->[width=.9\\linewidth]{"
+                                            filename-relative "/" a "}"
+                                            "\\end{textblock*}\n"))
+                                  (directory-files
+                                   filename nil
+                                   (concat "layer.*\\." extension)))
+                         "")
+        )
       )))
 
