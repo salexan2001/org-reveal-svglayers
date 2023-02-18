@@ -17,9 +17,9 @@ This will create a new macro called "svgf" that will be expanded using the
 emacs (elisp) function "revealstack".
 
 The parameters work as follows:
-$1: Path to the slide without the extension ".svg". The slide should be an svg file created e.g. with inkscape.
-$2: Percentage of the width that will be used to scale the resulting image.
-$3: Extension, either "svg" or "png".
+- $1: Path to the slide without the extension ".svg". The slide should be an svg file created e.g. with inkscape.
+- $2: Percentage of the width that will be used to scale the resulting image.
+- $3: Extension, either "svg" or "png".
 
 To fix the extension for the whole presentation you can use e.g.:
 ```
