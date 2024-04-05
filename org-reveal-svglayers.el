@@ -14,7 +14,7 @@
               (shell-command (concat script-path "split_slide.sh " filename ".svg"))))
   )
 
-(defun revealrstack (filename-relative size regen extension)
+(defun revealrstack (filename-relative size regen extension handout)
   "This function implements support for layered svg-slides.
    inkscape is used to extract the individual layers from an svg-file.
    The shell script 'split_slide.sh' is used to do that.
@@ -47,12 +47,13 @@
       (progn
         ;; (message "other-export")
         (split-slides-with-script filename regen)
-        
+
+        (if handout
         ;; Only the merged version for handouts:
-        ;; (concat "[[" filename-relative "/merged.pdf]]")
+          (concat "[[" filename-relative "/merged.pdf]]")
 
         ;; The overlay version:
-        (mapconcat #'identity
+          (mapconcat #'identity
                          (seq-map (lambda (a) 
                                     (concat "#+BEAMER: \\begin{textblock*}{\\linewidth}(1cm,1.2cm) "
                                             "\\includegraphics<+->[width=.9\\linewidth]{"
@@ -61,7 +62,7 @@
                                   (directory-files
                                    filename nil
                                    (concat "layer.*\\." extension)))
-                         "")
+                         ""))
         )
       )))
 
